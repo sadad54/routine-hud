@@ -1,0 +1,15 @@
+[
+  { "id": "first_checkin", "title": "First step", "description": "Log your first check-in.", "icon": "✓", "rule": { "type": "checkIns", "value": 1 } },
+  { "id": "first_full_day", "title": "Full day", "description": "Every check-in Done or Partial in a single day.", "icon": "☀", "rule": { "type": "dayTypeCount", "dayType": "full", "value": 1 } },
+  { "id": "first_mvd", "title": "Held the line", "description": "Complete a Minimum viable day.", "icon": "⛨", "rule": { "type": "dayTypeCount", "dayType": "mvd", "value": 1 } },
+  { "id": "wake_7", "title": "Dawn patrol", "description": "First 7-day wake streak.", "icon": "☾", "rule": { "type": "bestStreak", "streak": "wake", "value": 7 } },
+  { "id": "exercise_7", "title": "Seven sweats", "description": "7-day exercise streak.", "icon": "♥", "rule": { "type": "bestStreak", "streak": "exercise", "value": 7 } },
+  { "id": "sleep_14", "title": "Lights out", "description": "14-day sleep streak.", "icon": "☽", "rule": { "type": "bestStreak", "streak": "sleep", "value": 14 } },
+  { "id": "fullday_30", "title": "Thirty strong", "description": "30-day Full-day streak.", "icon": "★", "rule": { "type": "bestStreak", "streak": "fullDay", "value": 30 } },
+  { "id": "apps_100", "title": "Centurion", "description": "100 job applications sent.", "icon": "✉", "rule": { "type": "total", "metric": "applications", "value": 100 } },
+  { "id": "emails_25", "title": "Door knocker", "description": "25 supervisor emails sent.", "icon": "✎", "rule": { "type": "total", "metric": "supervisorEmails", "value": 25 } },
+  { "id": "deep_100h", "title": "Deep diver", "description": "100 deep-work hours.", "icon": "◆", "rule": { "type": "total", "metric": "deepWorkHours", "value": 100 } },
+  { "id": "quests_week", "title": "Clean sweep", "description": "Meet all four weekly quests in one week.", "icon": "▲", "rule": { "type": "allQuestWeeks", "value": 1 } },
+  { "id": "quests_4_weeks", "title": "Month of momentum", "description": "4 weeks of all quests met.", "icon": "♛", "rule": { "type": "allQuestWeeks", "value": 4 } },
+  { "id": "level_10", "title": "Double digits", "description": "Reach level 10.", "icon": "⬢", "rule": { "type": "level", "value": 10 } }
+]

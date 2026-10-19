@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light dark;
+  --accent: #3f51b5;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 antialiased dark:bg-[#0b0d12] dark:text-slate-100;
+  font-feature-settings: 'tnum' 1, 'cv11' 1;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Countdown: ≥64px on phone, ≥96px on desktop (readable from ~3 m). */
+.countdown {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-size: clamp(64px, 14vw, 72px);
+}
+@media (min-width: 768px) {
+  .countdown {
+    font-size: clamp(96px, 8vw, 128px);
+  }
+}
+
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.card {
+  @apply rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/60;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800 transition-colors hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800;
+}
+.btn-primary {
+  @apply border-transparent bg-[var(--accent)] text-white hover:opacity-90 dark:bg-[var(--accent)] dark:hover:opacity-90;
+}
+.input {
+  @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100;
+}
+.label {
+  @apply text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400;
+}
+
+.countdown.countdown-kiosk {
+  font-size: clamp(88px, 17vmin, 220px);
+}
+
+/* Alert pulses — transforms only. Replaced by static colour under reduced motion. */
+@keyframes pulse-soft {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.015); }
+}
+@keyframes pulse-strong {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.035); }
+}
+.ring-pulse-soft { animation: pulse-soft 2.4s ease-in-out infinite; }
+.ring-pulse-strong { animation: pulse-strong 1s ease-in-out infinite; }
+
+@keyframes flash {
+  0% { opacity: 0.85; }
+  100% { opacity: 0; }
+}
+.flash { animation: flash 1.2s ease-out forwards; }
+
+@keyframes sheet-in {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.sheet-in { animation: sheet-in 0.18s ease-out; }
+
+@keyframes toast-in {
+  from { transform: translateY(-8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.toast-in { animation: toast-in 0.2s ease-out; }
+
+/* Level-up confetti: the only confetti in the app. */
+@keyframes confetti-fall {
+  0% { transform: translate3d(0, -10vh, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate3d(var(--dx), 105vh, 0) rotate(var(--rot)); opacity: 0.9; }
+}
+.confetti-piece {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 14px;
+  border-radius: 2px;
+  animation: confetti-fall var(--dur) cubic-bezier(0.2, 0.6, 0.4, 1) forwards;
+  animation-delay: var(--delay);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring-pulse-soft,
+  .ring-pulse-strong,
+  .sheet-in,
+  .toast-in {
+    animation: none !important;
+  }
+  .flash { animation-duration: 0.01s; }
+  .confetti-piece { display: none; }
+}
+
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.safe-top { padding-top: env(safe-area-inset-top); }
