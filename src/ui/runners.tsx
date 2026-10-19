@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { useClock } from '../clock/clock';
 import { dueAlerts, isQuietHours, type AlertEvent, type AlertSound } from '../alerts/engine';
+import { rankFor } from '../game/identity';
 import { ACHIEVEMENTS } from '../game/summary';
 import { QUEST_LABEL } from '../game/quests';
 import { playSound } from '../platform/audio';
@@ -93,14 +94,14 @@ export function GameWatcher() {
       void app.unlockAchievements(fresh);
       for (const id of fresh) {
         const def = ACHIEVEMENTS.find((a) => a.id === id);
-        if (def) app.toast({ kind: 'achievement', title: `${def.icon} ${def.title}`, body: def.description });
+        if (def) app.toast({ kind: 'achievement', title: def.title, body: def.description });
       }
     }
 
     const prevLevel = Number(readLS('rh.level') ?? '-1');
     if (prevLevel >= 0 && game.level.level > prevLevel) {
       app.celebrate();
-      app.toast({ kind: 'level', title: `Level ${game.level.level}!`, body: `${game.totalXp} XP total` });
+      app.toast({ kind: 'level', title: `Level ${game.level.level} · ${rankFor(game.level.level).title}`, body: `${game.totalXp} XP total. One step closer to the North Star.` });
     }
     writeLS('rh.level', String(game.level.level));
 

@@ -10,16 +10,80 @@ import { CATEGORIES, type Category } from '../schedule/types';
 import { prayerSourceFor, useApp } from '../store/app';
 import { useDayBlocks, useToday } from './hooks';
 import { Icon } from './Icon';
-import { CATEGORY } from './theme';
+import { DEFAULT_NORTH_STAR, PILLARS } from '../game/identity';
+import type { NorthStar } from '../game/types';
+import { CATEGORY, PILLAR } from './theme';
 
-function Section({ title, children, id }: { title: string; children: ReactNode; id: string }) {
+function Section({ title, children, id, className = '' }: { title: string; children: ReactNode; id: string; className?: string }) {
   return (
-    <section className="card p-4" aria-labelledby={id}>
-      <h2 id={id} className="mb-3 text-base font-semibold">
+    <section className={`card p-5 ${className}`} aria-labelledby={id}>
+      <h2 id={id} className="mb-4 text-[15px] font-semibold tracking-tight text-white">
         {title}
       </h2>
       {children}
     </section>
+  );
+}
+
+/** Edit the vision the whole app is reverse-engineered from. */
+function NorthStarEditor() {
+  const north = useApp((s) => s.settings.northStar);
+  const update = useApp((s) => s.updateSettings);
+  const [milestones, setMilestones] = useState(() => north.milestones.map((m) => `${m.when} | ${m.text}`).join('\n'));
+  const save = (patch: Partial<NorthStar>) => void update({ northStar: { ...north, ...patch } });
+  return (
+    <Section title="North Star" id="s-north" className="md:col-span-2">
+      <p className="serif -mt-2 mb-4 text-[17px] italic text-zinc-400">
+        Describe who you are in {north.year}. Every block, prayer and check-in is scored against this.
+      </p>
+      <div className="grid gap-4 md:grid-cols-[1fr_120px]">
+        <label className="text-sm">
+          <span className="mb-1.5 block font-medium text-zinc-300">Your name (for the greeting)</span>
+          <input className="input" value={north.name} maxLength={40} placeholder="Optional" onChange={(e) => save({ name: e.target.value })} />
+        </label>
+        <label className="text-sm">
+          <span className="mb-1.5 block font-medium text-zinc-300">Vision year</span>
+          <input
+            className="input font-mono tabular"
+            type="number"
+            min={2026}
+            max={2100}
+            value={north.year}
+            onChange={(e) => save({ year: Math.max(2026, Math.min(2100, Math.round(Number(e.target.value) || north.year))) })}
+          />
+        </label>
+      </div>
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        {PILLARS.map((p) => {
+          const meta = PILLAR[p];
+          const PI = meta.icon;
+          return (
+            <label key={p} className="text-sm">
+              <span className="mb-1.5 flex items-center gap-2 font-medium text-zinc-300">
+                <PI className="h-4 w-4" style={{ color: meta.color }} strokeWidth={1.75} /> {meta.become}
+              </span>
+              <input className="input" value={north.statements[p]} maxLength={120} onChange={(e) => save({ statements: { ...north.statements, [p]: e.target.value } })} />
+            </label>
+          );
+        })}
+      </div>
+      <label className="mt-4 block text-sm">
+        <span className="mb-1.5 block font-medium text-zinc-300">Milestones, end goal first (one per line: “when | what”)</span>
+        <textarea
+          className="input min-h-[120px] font-mono text-[12.5px] leading-relaxed"
+          value={milestones}
+          onChange={(e) => setMilestones(e.target.value)}
+          onBlur={() => {
+            const list = milestones
+              .split('\n')
+              .map((l) => l.split('|'))
+              .filter((parts) => parts.length >= 2 && parts[1]!.trim())
+              .map(([when, ...rest]) => ({ when: when!.trim(), text: rest.join('|').trim() }));
+            save({ milestones: list.length ? list : DEFAULT_NORTH_STAR.milestones });
+          }}
+        />
+      </label>
+    </Section>
   );
 }
 
@@ -71,13 +135,19 @@ export function SettingsScreen() {
   };
 
   return (
-    <div className="mx-auto grid max-w-4xl gap-4 px-4 py-5 md:grid-cols-2">
+    <div className="mx-auto grid max-w-5xl gap-4 px-4 pb-10 pt-5 sm:px-6 md:grid-cols-2 lg:pt-8">
       <div className="md:col-span-2">
-        <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100" role="note">
+        <h1 className="text-3xl font-semibold tracking-tight text-white">Settings</h1>
+        <p className="text-sm text-zinc-500">Everything stays on this device.</p>
+      </div>
+      <div className="md:col-span-2">
+        <div className="rounded-2xl border border-amber-300/20 bg-amber-300/[0.06] p-4 text-sm text-amber-100/90" role="note">
           <strong className="font-semibold">Alerts only fire while this app is open.</strong> A web app can’t reliably ring alarms when it’s closed —
           especially on iPhone. Keep it open (a background tab is fine on desktop Chrome). Google Calendar covers reminders when the app is closed.
         </div>
       </div>
+
+      <NorthStarEditor />
 
       <Section title="Sound & notifications" id="s-sound">
         <div className="space-y-3">
@@ -118,9 +188,9 @@ export function SettingsScreen() {
                 <Icon name="bell" className="h-4 w-4" /> Test notification
               </button>
             ) : perm === 'unsupported' ? (
-              <span className="text-sm text-slate-500">Notifications aren’t supported here.</span>
+              <span className="text-sm text-zinc-500">Notifications aren’t supported here.</span>
             ) : perm === 'denied' ? (
-              <span className="text-sm text-slate-600 dark:text-slate-300">
+              <span className="text-sm text-zinc-600 dark:text-zinc-300">
                 Notifications are blocked. Allow them in your browser’s site settings for this page.
               </span>
             ) : (
@@ -133,7 +203,7 @@ export function SettingsScreen() {
       </Section>
 
       <Section title="Today’s prayer times" id="s-prayer">
-        <ul className="mb-3 divide-y divide-slate-100 text-sm dark:divide-slate-800">
+        <ul className="mb-3 divide-y divide-zinc-100 text-sm dark:divide-zinc-800">
           {checklistPrayers(blocks).map((p) => {
             const b = blocks.find((x) => x.prayer === p)!;
             return (
@@ -144,7 +214,7 @@ export function SettingsScreen() {
             );
           })}
         </ul>
-        <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">
           Source: {source === 'live' ? 'Aladhan (JAKIM, method 17), fetched now' : source === 'cache' ? 'Aladhan (JAKIM), cached' : 'fixed fallback times — prayer times not loaded'}
           {prayerError ? ` · last error: ${prayerError}` : ''}
         </p>
@@ -181,7 +251,7 @@ export function SettingsScreen() {
       </Section>
 
       <Section title="Alert thresholds (minutes before a block ends)" id="s-thresholds">
-        <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mb-3 text-xs text-zinc-500 dark:text-zinc-400">
           Comma-separated. Over 5 min: colour only. 2–5 min: chime + notification. 1 min: double chime. Default {DEFAULT_THRESHOLDS.join(', ')}.
         </p>
         <div className="space-y-2">
@@ -210,7 +280,7 @@ export function SettingsScreen() {
       </Section>
 
       <Section title="Data" id="s-data">
-        <p className="mb-3 text-sm text-slate-600 dark:text-slate-300">Everything is stored on this device only. Export regularly to keep a backup.</p>
+        <p className="mb-3 text-sm text-zinc-600 dark:text-zinc-300">Everything is stored on this device only. Export regularly to keep a backup.</p>
         <div className="flex flex-wrap gap-2">
           <button className="btn" onClick={() => void download()}>
             <Icon name="download" className="h-4 w-4" /> Export JSON
@@ -241,13 +311,17 @@ export function SettingsScreen() {
       </Section>
 
       <Section title="About" id="s-about">
-        <ul className="space-y-1 text-sm text-slate-600 dark:text-slate-300">
+        <ul className="space-y-1 text-sm text-zinc-600 dark:text-zinc-300">
           <li>Times are always Asia/Kuala_Lumpur, whatever this device’s time zone.</li>
+          <li>
+            Shortcuts: <span className="kbd">⌘K</span> command menu, <span className="kbd">1</span>–<span className="kbd">4</span> tabs, <span className="kbd">F</span> focus mode,{' '}
+            <span className="kbd">M</span> mute, <span className="kbd">Q</span> another quote.
+          </li>
           <li>Kiosk wake lock: {wakeLockSupported() ? 'supported' : 'not supported in this browser'}.</li>
           <li>
-            Dev tools: add <code className="rounded bg-slate-100 px-1 dark:bg-slate-800">?dev=1</code>,{' '}
-            <code className="rounded bg-slate-100 px-1 dark:bg-slate-800">?now=2026-10-23T12:50</code> or{' '}
-            <code className="rounded bg-slate-100 px-1 dark:bg-slate-800">?speed=60</code> to the URL.
+            Dev tools: add <code className="rounded bg-white/[0.06] px-1 font-mono text-[12px]">?dev=1</code>,{' '}
+            <code className="rounded bg-white/[0.06] px-1 font-mono text-[12px]">?now=2026-10-23T12:50</code> or{' '}
+            <code className="rounded bg-white/[0.06] px-1 font-mono text-[12px]">?speed=60</code> to the URL.
           </li>
         </ul>
       </Section>
@@ -261,8 +335,8 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
       {label}
       <span className="relative inline-flex">
         <input type="checkbox" role="switch" className="peer sr-only" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-        <span className="h-6 w-11 rounded-full bg-slate-300 transition-colors peer-checked:bg-[var(--accent)] peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--accent)] dark:bg-slate-700" />
-        <span className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5" />
+        <span className="h-6 w-11 rounded-full bg-white/10 transition-colors duration-300 peer-checked:bg-[color:var(--accent)] peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[color:var(--accent)]" />
+        <span className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-lg transition-transform duration-300 ease-out-expo peer-checked:tranzinc-x-5" />
         <span className="sr-only">{checked ? 'on' : 'off'}</span>
       </span>
     </label>

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useClock } from '../clock/clock';
 import { pendingCheckIns } from '../game/checkin';
+import { dayPillars, type PillarScores } from '../game/identity';
 import { summarize, type GameSummary } from '../game/summary';
 import { computeNow, type NowState } from '../schedule/now';
 import { addDays, dateKey } from '../schedule/time';
@@ -59,4 +60,16 @@ export function usePending(): ResolvedBlock[] {
 export function findBlock(key: string, resolve: (d: string) => ResolvedBlock[]): ResolvedBlock | undefined {
   const date = key.slice(0, 10);
   return resolve(date).find((b) => b.key === key);
+}
+
+/** Identity-pillar scores for a date. */
+export function usePillarDay(date: string): PillarScores {
+  const blocks = useDayBlocks(date);
+  const checkIns = useApp((s) => s.checkIns);
+  const prayers = useApp((s) => s.prayers);
+  const days = useApp((s) => s.days);
+  return useMemo(
+    () => dayPillars(date, blocks, checkIns, prayers, days.find((d) => d.date === date)),
+    [date, blocks, checkIns, prayers, days],
+  );
 }

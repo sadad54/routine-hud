@@ -1,21 +1,27 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
-  darkMode: 'media',
+  // The app is dark-first: <html class="dark"> is always set.
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        sage: '#33B679',
-        blueberry: '#3F51B5',
-        tangerine: '#F4511E',
-        grape: '#8E24AA',
-        tomato: '#D50000',
-        banana: '#F6BF26',
-        graphite: '#616161',
-        lavender: '#7986CB',
+        ink: {
+          950: '#05060a',
+          900: '#090b11',
+          850: '#0d1017',
+          800: '#121620',
+          700: '#1a1f2b',
+          600: '#262c3a',
+        },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['"Geist Variable"', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+        mono: ['"Geist Mono Variable"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+        serif: ['"Instrument Serif"', 'ui-serif', 'Georgia', 'serif'],
+      },
+      transitionTimingFunction: {
+        'out-expo': 'cubic-bezier(0.16, 1, 0.3, 1)',
       },
     },
   },

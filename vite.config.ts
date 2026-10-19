@@ -17,8 +17,8 @@ export default defineConfig({
         name: 'Routine HUD',
         short_name: 'Routine HUD',
         description: 'What should I be doing right now, and how long is left?',
-        theme_color: '#3F51B5',
-        background_color: '#0b0d12',
+        theme_color: '#05060a',
+        background_color: '#05060a',
         display: 'standalone',
         orientation: 'any',
         start_url: '.',
@@ -34,6 +34,12 @@ export default defineConfig({
         importScripts: ['sw-notify.js'],
         navigateFallback: 'index.html',
         runtimeCaching: [
+          {
+            // Fonts ship many unicode-range subsets; cache the ones the browser actually asks for.
+            urlPattern: ({ url }) => url.pathname.endsWith('.woff2'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'fonts', expiration: { maxEntries: 24, maxAgeSeconds: 60 * 60 * 24 * 365 } },
+          },
           {
             urlPattern: /^https:\/\/api\.aladhan\.com\/.*/i,
             handler: 'NetworkFirst',

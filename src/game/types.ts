@@ -43,6 +43,8 @@ export interface DayRecord {
   badDayMode: boolean;
   dayType: DayType;
   bonusXp: number;
+  /** "Showed up for someone I love today" (the Love pillar's daily tick). */
+  connected?: boolean;
 }
 
 export interface Achievement {
@@ -57,6 +59,20 @@ export interface QuestTargets {
   exerciseDays: number;
 }
 
+/** The five identity pillars, reverse-engineered from the end goal. */
+export type Pillar = 'craft' | 'deen' | 'body' | 'wealth' | 'love';
+
+export interface NorthStar {
+  /** Used in the greeting; empty for none. */
+  name: string;
+  /** The year the vision describes. */
+  year: number;
+  /** "I am…" statement per pillar. */
+  statements: Record<Pillar, string>;
+  /** Milestones from the vision back to now, newest goal first: "2027 | MRes in Australia". */
+  milestones: { when: string; text: string }[];
+}
+
 export interface Settings {
   id: 'singleton';
   mute: boolean;
@@ -64,6 +80,7 @@ export interface Settings {
   thresholdsByCategory: Record<string, number[]>;
   prayerXp: boolean;
   questTargets: QuestTargets;
+  northStar: NorthStar;
 }
 
 export interface GameData {

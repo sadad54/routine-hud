@@ -1,4 +1,5 @@
 import { defaultThresholds } from '../alerts/engine';
+import { DEFAULT_NORTH_STAR } from '../game/identity';
 import { DEFAULT_TARGETS } from '../game/quests';
 import type { Settings } from '../game/types';
 
@@ -10,6 +11,7 @@ export function defaultSettings(): Settings {
     thresholdsByCategory: defaultThresholds(),
     prayerXp: false,
     questTargets: { ...DEFAULT_TARGETS },
+    northStar: structuredClone(DEFAULT_NORTH_STAR),
   };
 }
 
@@ -24,5 +26,11 @@ export function withDefaults(s: Partial<Settings> | undefined): Settings {
     quietHours: { ...d.quietHours, ...s.quietHours },
     thresholdsByCategory: { ...d.thresholdsByCategory, ...s.thresholdsByCategory },
     questTargets: { ...d.questTargets, ...s.questTargets },
+    northStar: {
+      ...d.northStar,
+      ...s.northStar,
+      statements: { ...d.northStar.statements, ...s.northStar?.statements },
+      milestones: s.northStar?.milestones ?? d.northStar.milestones,
+    },
   };
 }

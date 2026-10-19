@@ -2,9 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/* The accent is a registered colour so the whole UI morphs smoothly when a block changes. */
+@property --accent {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #8b9cff;
+}
+@property --spot {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+
 :root {
-  color-scheme: light dark;
-  --accent: #3f51b5;
+  color-scheme: dark;
+  --accent: #8b9cff;
+  --mx: 50%;
+  --my: -200px;
+  transition: --accent 1.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html,
@@ -14,56 +29,172 @@ body,
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased dark:bg-[#0b0d12] dark:text-slate-100;
-  font-feature-settings: 'tnum' 1, 'cv11' 1;
+  @apply bg-ink-950 font-sans text-zinc-100 antialiased;
+  font-feature-settings: 'ss01' 1, 'cv11' 1;
   -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--accent) 40%, transparent);
 }
 
 .tabular {
   font-variant-numeric: tabular-nums;
 }
 
-/* Countdown: ≥64px on phone, ≥96px on desktop (readable from ~3 m). */
+/* ─── Countdown: ≥64px on phone, ≥96px on desktop (readable from ~3 m) ─── */
 .countdown {
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-weight: 250;
+  letter-spacing: -0.045em;
   line-height: 1;
-  font-size: clamp(64px, 14vw, 72px);
+  font-size: clamp(64px, 17vw, 84px);
+  color: #fff;
+  /* Glow on the whole number; a text-shadow would be clipped by each rolling digit. */
+  filter: drop-shadow(0 0 28px color-mix(in oklab, var(--accent) 45%, transparent));
 }
 @media (min-width: 768px) {
   .countdown {
-    font-size: clamp(96px, 8vw, 128px);
+    font-size: clamp(96px, 8vw, 120px);
   }
 }
-
-
-:focus-visible {
-  outline: 3px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: 6px;
+/* H:MM:SS needs to fit inside the dial. */
+.countdown.countdown-long {
+  font-size: clamp(56px, 14vw, 72px);
 }
-
-.card {
-  @apply rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/60;
+@media (min-width: 768px) {
+  .countdown.countdown-long {
+    font-size: clamp(80px, 6.4vw, 96px);
+  }
 }
-
-.btn {
-  @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800 transition-colors hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800;
-}
-.btn-primary {
-  @apply border-transparent bg-[var(--accent)] text-white hover:opacity-90 dark:bg-[var(--accent)] dark:hover:opacity-90;
-}
-.input {
-  @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100;
-}
-.label {
-  @apply text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400;
-}
-
 .countdown.countdown-kiosk {
   font-size: clamp(88px, 17vmin, 220px);
 }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ─── Surfaces ─────────────────────────────────────────────────────── */
+
+/* Glass card with a cursor spotlight (fill + 1px border glow). --mx/--my are set by a single pointer listener. */
+.card {
+  position: relative;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background:
+    radial-gradient(520px circle at var(--mx) var(--my), color-mix(in oklab, var(--accent) var(--spot), transparent), transparent 45%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 24px 48px -28px rgba(0, 0, 0, 0.8);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  transition: --spot 0.5s ease, border-color 0.3s ease;
+}
+.card:hover {
+  --spot: 9%;
+}
+.card::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(260px circle at var(--mx) var(--my), color-mix(in oklab, var(--accent) 70%, transparent), transparent 60%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+.card:hover::after {
+  opacity: 1;
+}
+
+.btn {
+  @apply inline-flex select-none items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-medium text-zinc-200 transition-all duration-200 ease-out-expo hover:border-white/20 hover:bg-white/[0.08] hover:text-white active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40;
+}
+.btn-primary {
+  @apply border-transparent font-semibold text-ink-950 hover:text-ink-950;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--accent) 85%, white), var(--accent));
+  box-shadow: 0 8px 24px -10px var(--accent), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+.btn-primary:hover {
+  filter: brightness(1.08);
+  background: linear-gradient(180deg, color-mix(in oklab, var(--accent) 85%, white), var(--accent));
+}
+.input {
+  @apply w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 transition-colors focus:border-[color:var(--accent)] focus:outline-none;
+}
+.label {
+  @apply font-mono text-[10.5px] font-medium uppercase tracking-[0.16em] text-zinc-500;
+}
+.kbd {
+  @apply inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-md border border-white/10 bg-white/[0.06] px-1 font-mono text-[10px] text-zinc-400;
+}
+.serif {
+  @apply font-serif;
+  font-feature-settings: normal;
+}
+
+/* Text that shimmers once, for big wins. */
+.text-gradient {
+  background: linear-gradient(100deg, #fff 0%, color-mix(in oklab, var(--accent) 70%, white) 50%, #fff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ─── Backdrop: aurora blobs + grid + grain ─────────────────────────── */
+.aurora-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  opacity: 0.32;
+  will-change: transform;
+}
+@keyframes drift-a {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33% { transform: translate3d(8vw, 6vh, 0) scale(1.15); }
+  66% { transform: translate3d(-6vw, 10vh, 0) scale(0.95); }
+}
+@keyframes drift-b {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.1); }
+  50% { transform: translate3d(-10vw, -8vh, 0) scale(0.9); }
+}
+@keyframes drift-c {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(0.9); }
+  50% { transform: translate3d(6vw, -12vh, 0) scale(1.2); }
+}
+.drift-a { animation: drift-a 38s ease-in-out infinite; }
+.drift-b { animation: drift-b 46s ease-in-out infinite; }
+.drift-c { animation: drift-c 54s ease-in-out infinite; }
+
+.grid-lines {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+}
+.grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+}
+
+/* ─── Ring ─────────────────────────────────────────────────────────── */
+@keyframes breathe {
+  0%, 100% { transform: scale(0.94); opacity: 0.55; }
+  50% { transform: scale(1.02); opacity: 0.9; }
+}
+.breathe { animation: breathe 6s ease-in-out infinite; transform-origin: center; }
 
 /* Alert pulses — transforms only. Replaced by static colour under reduced motion. */
 @keyframes pulse-soft {
@@ -78,43 +209,77 @@ body {
 .ring-pulse-strong { animation: pulse-strong 1s ease-in-out infinite; }
 
 @keyframes flash {
-  0% { opacity: 0.85; }
+  0% { opacity: 0.5; }
   100% { opacity: 0; }
 }
 .flash { animation: flash 1.2s ease-out forwards; }
 
-@keyframes sheet-in {
-  from { transform: translateY(24px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+@keyframes rise-in {
+  from { transform: translateY(8px); opacity: 0; filter: blur(4px); }
+  to { transform: translateY(0); opacity: 1; filter: blur(0); }
 }
-.sheet-in { animation: sheet-in 0.18s ease-out; }
+.rise-in { animation: rise-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
-@keyframes toast-in {
-  from { transform: translateY(-8px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+@keyframes shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(250%); }
 }
-.toast-in { animation: toast-in 0.2s ease-out; }
+.shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  animation: shimmer 2.8s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+@keyframes flicker {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.06, 0.97) rotate(-3deg); }
+  50% { transform: scale(0.97, 1.05) rotate(2deg); }
+  75% { transform: scale(1.04, 0.98) rotate(-1deg); }
+}
+.flicker { animation: flicker 1.6s ease-in-out infinite; transform-origin: 50% 90%; }
+
+@keyframes dash-flow {
+  to { stroke-dashoffset: -24; }
+}
+.dash-flow { animation: dash-flow 1.6s linear infinite; }
 
 /* Level-up confetti: the only confetti in the app. */
 @keyframes confetti-fall {
   0% { transform: translate3d(0, -10vh, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate3d(var(--dx), 105vh, 0) rotate(var(--rot)); opacity: 0.9; }
+  100% { transform: translate3d(var(--dx), 105vh, 0) rotate(var(--rot)); opacity: 0; }
 }
 .confetti-piece {
   position: absolute;
   top: 0;
-  width: 8px;
+  width: 3px;
   height: 14px;
   border-radius: 2px;
   animation: confetti-fall var(--dur) cubic-bezier(0.2, 0.6, 0.4, 1) forwards;
   animation-delay: var(--delay);
 }
 
+/* Thin scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  :root { transition: none; }
   .ring-pulse-soft,
   .ring-pulse-strong,
-  .sheet-in,
-  .toast-in {
+  .rise-in,
+  .breathe,
+  .flicker,
+  .dash-flow,
+  .drift-a,
+  .drift-b,
+  .drift-c,
+  .shimmer::after {
     animation: none !important;
   }
   .flash { animation-duration: 0.01s; }

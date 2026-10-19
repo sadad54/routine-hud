@@ -2,11 +2,14 @@ import { create } from 'zustand';
 import { useClock } from '../clock/clock';
 import { buildCheckIn } from '../game/checkin';
 import { evaluateDay } from '../game/days';
+import { PILLAR_OF } from '../game/identity';
+import { PRAYER_XP } from '../game/xp';
 import type {
   Achievement,
   CheckIn,
   CheckInStatus,
   DayRecord,
+  Pillar,
   PrayerCheck,
   PrayerTimesMonth,
   Settings,
@@ -27,6 +30,16 @@ export interface Toast {
   title: string;
   body?: string;
   kind: 'info' | 'achievement' | 'level' | 'quest' | 'error';
+}
+
+export type Tab = 'now' | 'today' | 'growth' | 'settings';
+export const TAB_IDS: Tab[] = ['now', 'today', 'growth', 'settings'];
+
+/** A short "+XP" burst after a check-in. */
+export interface Reward {
+  id: number;
+  xp: number;
+  pillar: Pillar | null;
 }
 
 export interface SheetState {
@@ -52,11 +65,20 @@ interface AppState {
   flashAt: number;
   confettiAt: number;
   toasts: Toast[];
+  tab: Tab;
+  palette: boolean;
+  /** Bumped by "shuffle" to show a different wisdom line. */
+  shuffle: number;
+  reward: Reward | null;
 
   init: () => Promise<void>;
   saveCheckIn: (block: ResolvedBlock, input: { status: CheckInStatus; note?: string; count?: number }) => Promise<void>;
   togglePrayer: (date: string, prayer: PrayerName) => Promise<void>;
   setBadDay: (date: string, on: boolean) => Promise<void>;
+  toggleConnected: (date: string) => Promise<void>;
+  setTab: (tab: Tab) => void;
+  setPalette: (open: boolean) => void;
+  nextWisdom: () => void;
   updateSettings: (patch: Partial<Omit<Settings, 'id'>>) => Promise<void>;
   markFired: (ids: string[]) => Promise<void>;
   unlockAchievements: (ids: string[]) => Promise<void>;
@@ -77,6 +99,17 @@ interface AppState {
 }
 
 let toastId = 1;
+let rewardId = 1;
+
+function initialTab(): Tab {
+  try {
+    const t = localStorage.getItem('rh.tab');
+    if (t === 'stats') return 'growth';
+    return TAB_IDS.includes(t as Tab) ? (t as Tab) : 'now';
+  } catch {
+    return 'now';
+  }
+}
 const virtualIso = () => isoKL(useClock.getState().now);
 
 export const useApp = create<AppState>((set, get) => ({
@@ -96,6 +129,10 @@ export const useApp = create<AppState>((set, get) => ({
   flashAt: 0,
   confettiAt: 0,
   toasts: [],
+  tab: initialTab(),
+  palette: false,
+  shuffle: 0,
+  reward: null,
 
   init: async () => {
     const db = getDb();
@@ -134,6 +171,7 @@ export const useApp = create<AppState>((set, get) => ({
     const existing = get().checkIns.find((c) => c.id === block.key);
     const rec = buildCheckIn(block, input, virtualIso(), existing);
     set({ checkIns: [...get().checkIns.filter((c) => c.id !== rec.id), rec] });
+    if (input.status !== 'skipped') set({ reward: { id: rewardId++, xp: rec.xpAwarded, pillar: PILLAR_OF[block.category] ?? null } });
     await safe(() => getDb().checkIns.put(rec));
     await refreshDay(block.date);
   },
@@ -143,6 +181,7 @@ export const useApp = create<AppState>((set, get) => ({
     const existing = get().prayers.find((p) => p.id === id);
     const rec: PrayerCheck = { id, date, prayer, prayed: !existing?.prayed };
     set({ prayers: [...get().prayers.filter((p) => p.id !== id), rec] });
+    if (rec.prayed) set({ reward: { id: rewardId++, xp: get().settings.prayerXp ? PRAYER_XP : 0, pillar: 'deen' } });
     await safe(() => getDb().prayerChecks.put(rec));
     await refreshDay(date);
   },
@@ -152,6 +191,25 @@ export const useApp = create<AppState>((set, get) => ({
     set({ days: [...get().days.filter((d) => d.date !== date), rec] });
     await safe(() => getDb().days.put(rec));
   },
+
+  toggleConnected: async (date) => {
+    const prev = dayRecordFor(date);
+    const rec = { ...prev, connected: !prev.connected };
+    set({ days: [...get().days.filter((d) => d.date !== date), rec] });
+    if (rec.connected) set({ reward: { id: rewardId++, xp: 0, pillar: 'love' } });
+    await safe(() => getDb().days.put(rec));
+  },
+
+  setTab: (tab) => {
+    set({ tab });
+    try {
+      localStorage.setItem('rh.tab', tab);
+    } catch {
+      /* ignore */
+    }
+  },
+  setPalette: (palette) => set({ palette }),
+  nextWisdom: () => set({ shuffle: get().shuffle + 1 }),
 
   updateSettings: async (patch) => {
     const settings = { ...get().settings, ...patch, id: 'singleton' as const };

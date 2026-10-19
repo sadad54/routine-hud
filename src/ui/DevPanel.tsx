@@ -26,12 +26,12 @@ export function DevPanel() {
   const t = kl(hud.now);
   return (
     <aside
-      className="fixed bottom-20 right-3 z-40 w-72 rounded-2xl border border-slate-300 bg-white/95 p-3 text-xs shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-900/95 lg:bottom-3"
+      className="fixed bottom-20 right-3 z-40 w-72 rounded-2xl border border-white/10 bg-ink-850/95 p-3 text-xs shadow-2xl backdrop-blur-xl lg:bottom-3"
       aria-label="Developer panel"
     >
       <div className="mb-2 flex items-center justify-between">
         <strong className="text-sm">Dev clock</strong>
-        <button onClick={() => setOpen(false)} aria-label="Close dev panel" className="rounded p-1 hover:bg-slate-100 dark:hover:bg-slate-800">
+        <button onClick={() => setOpen(false)} aria-label="Close dev panel" className="rounded p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800">
           <Icon name="close" className="h-4 w-4" />
         </button>
       </div>
@@ -67,11 +67,11 @@ export function DevPanel() {
         <button className="btn !px-2 !py-1 !text-xs" onClick={() => void seed(21)}>
           Seed 3 weeks
         </button>
-        <span className="self-center text-slate-500">
+        <span className="self-center text-zinc-500">
           {app.checkIns.length} check-ins · {app.fired.size} fired
         </span>
       </div>
-      <p className="mt-2 text-[11px] text-slate-500">Tip: “→ end −11m” then 60× shows a full block’s alerts in about a minute.</p>
+      <p className="mt-2 text-[11px] text-zinc-500">Tip: “→ end −11m” then 60× shows a full block’s alerts in about a minute.</p>
     </aside>
   );
 }

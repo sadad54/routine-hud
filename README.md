@@ -2,9 +2,11 @@
 
 A single-user, installable web app that answers **"what should I be doing right now, and how long is left?"** at a glance. It shows the current block of a fixed daily routine, counts it down, warns before every boundary, and turns sticking to the routine into a game with XP, levels, streaks and weekly quests. Prayer blocks follow the real JAKIM prayer times for Kuala Lumpur.
 
-- Vite + React 18 + TypeScript (strict) · Tailwind · Zustand · Dexie (IndexedDB) · Luxon · Recharts (lazy) · vite-plugin-pwa
+- Vite + React 18 + TypeScript (strict) · Tailwind · Motion · Lucide · Zustand · Dexie (IndexedDB) · Luxon · Recharts (lazy) · vite-plugin-pwa
 - No backend, no accounts, no analytics. Works offline after the first load.
 - All times are **Asia/Kuala_Lumpur**, whatever the device's time zone.
+
+On top of the routine sits an **identity layer** reverse-engineered from the end goal (an AI engineer who is spiritually centred, healthy, wealthy and loved): every check-in, prayer and "showed up for someone" tick is a vote for one of five pillars, a compound index tracks the 1%-a-day curve, and a rotating line of wisdom (self-help, ML engineering, Qur'an and hadith) fits whatever block you're in. Press <kbd>⌘K</kbd> for the command menu; <kbd>1</kbd>–<kbd>4</kbd> switch tabs, <kbd>F</kbd> focus mode, <kbd>M</kbd> mute, <kbd>Q</kbd> another quote.
 
 > **Alerts only fire while the app is open.** A web app can't reliably ring alarms when it's closed, especially on iPhone. Google Calendar covers closed-app reminders.
 
@@ -79,7 +81,8 @@ src/
   clock/      Web Worker tick + virtual dev clock (?now / ?speed)
   alerts/     threshold/transition/sprint/prayer alert engine, quiet hours                   [pure]
   prayer/     Aladhan JAKIM parsing + cache policy [pure], fetch
-  game/       XP, levels, streaks, quests, Minimum viable day, achievements.json             [pure]
+  game/       XP, levels, streaks, quests, Minimum viable day, identity pillars, achievements [pure]
+  content/    wisdom library (quotes, ML tips, reminders) and the block-aware picker         [pure]
   store/      Dexie DB, export/import, Zustand app store
   platform/   Web Audio chimes, notifications, wake lock
   ui/         screens and components
